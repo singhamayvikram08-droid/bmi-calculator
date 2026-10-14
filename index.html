@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <!-- Force HTTPS in Production (Safely bypassed on localhost/127.0.0.1) -->
+    <script>
+        if (location.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+            location.replace(`https://${location.host}${location.pathname}${location.search}`);
+        }
+    </script>
+    <title>VitalAI | AI-Powered Smart Health & Biomarkers Dashboard</title>
+    <meta name="description" content="Free precision health companion featuring AI biomarker analysis, clinical BMI & body fat estimation, real-time vitality ratings, and personalized nutrition guidance.">
+    <meta name="keywords" content="VitalAI, BMI Calculator, Body Fat Percentage, Biomarker Analytics, Fitness Score, Health Dashboard, Calorie Tracker, Nutrition Advisor, Health AI">
+    <meta name="author" content="VitalAI Systems">
+    <meta name="theme-color" content="#8b5cf6">
+    <link rel="canonical" href="https://vital-ai.onrender.com/">
+
+    <!-- Favicon & PWA Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Open Graph (Social Previews) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vital-ai.onrender.com/">
+    <meta property="og:title" content="VitalAI | AI-Powered Smart Health & Biomarkers Dashboard">
+    <meta property="og:description" content="Free precision health companion featuring AI biomarker analysis, clinical BMI & body fat estimation, and personalized nutrition guidance.">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:site_name" content="VitalAI">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VitalAI | AI-Powered Smart Health & Biomarkers Dashboard">
+    <meta name="twitter:description" content="Free precision health companion featuring AI biomarker analysis, clinical BMI & body fat estimation.">
+    <meta name="twitter:image" content="/og-image.png">
+
+    <!-- Resource Preconnects for Optimal Page Speed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- Anti-FOIT Script for Seamless Theme Initialization -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('ai_theme');
+                if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark-mode');
+                } else {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    <!-- Core Chart Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js" defer></script>
+</head>
+
+<body class="dark-mode">
+    <script>
+        if (localStorage.getItem('ai_theme') === 'light') {
+            document.body.classList.remove('dark-mode');
+        }
+    </script>
+
+    <!-- AUTH VIEW -->
+    <div id="auth-view" class="view active">
+        <button class="icon-btn theme-toggle-btn auth-theme-toggle" aria-label="Toggle dark and light mode" title="Toggle dark / light mode">
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+        </button>
+        <div class="auth-glass card glass-panel">
+            <div class="brand-center">
+                <i class="fa-solid fa-dna text-gradient" style="font-size: 40px; margin-bottom:16px;" aria-hidden="true"></i>
+                <h2>Welcome to <span class="text-gradient">VitalAI</span></h2>
+                <p>Your futuristic health companion</p>
+            </div>
+
+            <div class="auth-tabs" role="tablist">
+                <button class="active" id="tab-login" role="tab" aria-selected="true">Login</button>
+                <button id="tab-signup" role="tab" aria-selected="false">Sign Up</button>
+            </div>
+
+            <form id="auth-form" novalidate>
+                <!-- Anti-Spam Honeypot Field -->
+                <input type="text" name="b_trap" class="vital-trap-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+                <div class="input-group" id="name-group" style="display: none;">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <input type="text" id="auth-name" placeholder="Full Name" autocomplete="name">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                    <input type="email" id="auth-email" placeholder="Email Address" required autocomplete="email">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <input type="password" id="auth-password" placeholder="Password" required autocomplete="current-password">
+                </div>
+                <div id="auth-error-msg" class="field-error-msg" style="text-align: center; margin-bottom: 12px;"></div>
+                <button type="submit" class="btn-primary w-100" id="auth-btn">Access Dashboard</button>
+            </form>
+
+            <div style="margin-top: 18px; text-align: center; font-size: 0.8rem; color: var(--text-sec);">
+                <span>By continuing, you accept our </span>
+                <a href="/terms.html" style="color: var(--primary);">Terms</a> &amp;
+                <a href="/privacy.html" style="color: var(--primary);">Privacy Policy</a>.
+            </div>
+        </div>
+    </div>
+
+    <!-- APP VIEW -->
+    <div id="app-view" class="view">
+        <div class="dashboard-layout">
+            <aside class="sidebar glass-panel" id="sidebar-drawer">
+                <div class="brand">
+                    <i class="fa-solid fa-dna text-gradient" aria-hidden="true"></i>
+                    <span class="brand-name">VitalAI</span>
+                </div>
+                <div class="user-greeting">
+                    <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" id="user-avatar" alt="User profile avatar image" width="48" height="48" loading="lazy">
+                    <div>
+                        <p class="greeting">Hello,</p>
+                        <h4 id="user-name-display">User</h4>
+                    </div>
+                </div>
+                <nav class="nav-menu" aria-label="Main Navigation">
+                    <a href="#dashboard" class="active" id="nav-dashboard-link">
+                        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#bmi-form-card" id="nav-calculator-link">
+                        <i class="fa-solid fa-calculator" aria-hidden="true"></i>
+                        <span>Biomarkers</span>
+                    </a>
+                    <a href="#goal-simulator-card" id="nav-simulator-link">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        <span>Goal Simulator</span>
+                    </a>
+                    <a href="#logout" id="logout-btn" style="margin-top:auto;">
+                        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                        <span>Logout</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <header class="top-header">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <button class="mobile-nav-toggle" id="mobile-toggle-btn" aria-label="Toggle navigation menu">
+                            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+                        </button>
+                        <div>
+                            <h1>AI Health Dashboard</h1>
+                            <p>Analyze and optimize your physiological biomarkers.</p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle" class="icon-btn theme-toggle-btn" aria-label="Toggle dark and light mode" title="Toggle dark / light mode">
+                            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- One Clear Hero Call to Action (CTA) Banner -->
+                <section class="hero-cta-banner">
+                    <div class="hero-cta-content">
+                        <span class="cta-pill"><i class="fa-solid fa-bolt" aria-hidden="true"></i> Precision Health Intelligence</span>
+                        <h2>Instant Clinical Biomarker Assessment</h2>
+                        <p>Calculate your BMI, Deurenberg body fat percentage, and generate custom AI nutrition plans in seconds.</p>
+                    </div>
+                    <a href="#bmi-form-card" class="cta-action-btn" id="hero-cta-btn">
+                        <i class="fa-solid fa-calculator" aria-hidden="true"></i>
+                        <span>Start Assessment</span>
+                    </a>
+                </section>
+
+                <div class="dashboard-grid">
+                    <!-- Calculator Card -->
+                    <div class="card glass-panel span-col" id="bmi-form-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+                            <h3 style="margin: 0;"><i class="fa-solid fa-calculator" aria-hidden="true"></i> Smart Biomarker Calculator</h3>
+                            <button type="button" class="scan-pill-btn" id="open-visual-scan-btn" title="Open AI Visual Body Scan">
+                                <i class="fa-solid fa-camera-retro" aria-hidden="true"></i>
+                                <span>AI Visual Body Scan</span>
+                            </button>
+                        </div>
+
+                        <!-- Feature 5: Smart Natural Language Input & Wearable Sync Strip -->
+                        <div class="smart-input-container">
+                            <div class="nlp-prompt-wrapper">
+                                <div class="nlp-input-row">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-gradient" aria-hidden="true"></i>
+                                    <input type="text" id="smart-prompt-input" placeholder="Type: '21 age', '21 yr', '21 yr male 175cm 72kg'..." aria-label="Smart Natural Language Health Input">
+                                    <button type="button" id="smart-mic-btn" class="smart-mic-btn" title="Speak health metrics to AI">
+                                        <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button" id="smart-parse-btn" class="smart-action-btn" title="Parse with AI Smart Input">
+                                        <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                                        <span>AI Auto-Fill</span>
+                                    </button>
+                                </div>
+                                <div class="quick-prompt-chips">
+                                    <span class="chip-label"><i class="fa-solid fa-sparkles text-gradient" aria-hidden="true"></i> Quick Prompts:</span>
+                                    <button type="button" class="prompt-chip" data-prompt="21 age">21 age</button>
+                                    <button type="button" class="prompt-chip" data-prompt="21 yr">21 yr</button>
+                                    <button type="button" class="prompt-chip" data-prompt="21 yr male 178cm 72kg">21 yr male 178cm 72kg</button>
+                                    <button type="button" class="prompt-chip" data-prompt="22 yr female 165cm 58kg 70cm waist">22 yr female 165cm 58kg</button>
+                                </div>
+                                <div class="wearable-sync-strip">
+                                    <span class="sync-label"><i class="fa-solid fa-link" aria-hidden="true"></i> Live Sync:</span>
+                                    <button type="button" class="wearable-btn" id="sync-apple-health" title="Sync with Apple Health">
+                                        <i class="fa-brands fa-apple" aria-hidden="true"></i> Apple Health
+                                    </button>
+                                    <button type="button" class="wearable-btn" id="sync-google-fit" title="Sync with Google Fit">
+                                        <i class="fa-brands fa-google" aria-hidden="true"></i> Google Fit
+                                    </button>
+                                    <button type="button" class="wearable-btn" id="sync-garmin" title="Sync with Garmin / Fitbit">
+                                        <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Garmin
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="unit-toggle" role="group" aria-label="Unit Selection">
+                            <button class="toggle-btn active" data-unit="metric" type="button">Metric (kg/cm)</button>
+                            <button class="toggle-btn" data-unit="imperial" type="button">Imperial (lb/ft+in)</button>
+                        </div>
+
+                        <form id="bmi-form" class="bmi-form" novalidate>
+                            <!-- Anti-Spam Honeypot Field -->
+                            <input type="text" name="b_trap" class="vital-trap-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+                            <div class="form-grid">
+                                <!-- Weight -->
+                                <div class="input-wrapper">
+                                    <label for="weight">Weight</label>
+                                    <div class="input-box" id="weight-box">
+                                        <input type="number" id="weight" step="0.1" min="20" max="350" required placeholder="68">
+                                        <span id="weight-unit">kg</span>
+                                    </div>
+                                    <span class="field-error-msg" id="weight-error">Valid weight required (20-350 kg)</span>
+                                </div>
+
+                                <!-- Metric Height -->
+                                <div class="input-wrapper metric-height">
+                                    <label for="height-cm">Height</label>
+                                    <div class="input-box" id="height-box">
+                                        <input type="number" id="height-cm" step="0.5" min="80" max="260" placeholder="175">
+                                        <span>cm</span>
+                                    </div>
+                                    <span class="field-error-msg" id="height-error">Valid height required (80-260 cm)</span>
+                                </div>
+
+                                <!-- Imperial Height -->
+                                <div class="input-wrapper imperial-height" style="display: none;">
+                                    <label for="height-ft">Height (ft / in)</label>
+                                    <div class="multi-input" id="imperial-box">
+                                        <input type="number" id="height-ft" min="3" max="8" placeholder="5">
+                                        <input type="number" id="height-in" min="0" max="11" placeholder="9">
+                                    </div>
+                                    <span class="field-error-msg" id="imperial-error">Valid feet (3-8) and inches (0-11) required</span>
+                                </div>
+
+                                <!-- Waist Circumference (Feature 1: WtHR & Visceral Fat) -->
+                                <div class="input-wrapper">
+                                    <label for="waist">Waist Circumference <span style="font-size: 0.78rem; color: var(--text-sec);">(Visceral Fat)</span></label>
+                                    <div class="input-box" id="waist-box">
+                                        <input type="number" id="waist" step="0.5" min="30" max="220" placeholder="80">
+                                        <span id="waist-unit">cm</span>
+                                    </div>
+                                    <span class="field-error-msg" id="waist-error">Valid waist required (30-220 cm)</span>
+                                </div>
+
+                                <!-- Age -->
+                                <div class="input-wrapper">
+                                    <label for="age">Age</label>
+                                    <div class="input-box" id="age-box">
+                                        <input type="number" id="age" value="25" min="12" max="120" required>
+                                    </div>
+                                    <span class="field-error-msg" id="age-error">Valid age required (12-120 years)</span>
+                                </div>
+
+                                <!-- Demographic Risk Scaling (Feature 1) -->
+                                <div class="input-wrapper">
+                                    <label for="ethnicity-scale">Demographic Risk Scaling</label>
+                                    <div class="input-box select-box">
+                                        <select id="ethnicity-scale" aria-label="Demographic Risk Scaling">
+                                            <option value="who_standard" selected>Global WHO Standard</option>
+                                            <option value="south_asian">South Asian / Asian (Adjusted Cutoffs)</option>
+                                            <option value="pacific">Polynesian / Pacific Islander</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Activity Level (Feature 4: BMR / TDEE) -->
+                                <div class="input-wrapper">
+                                    <label for="activity-level">Activity Level</label>
+                                    <div class="input-box select-box">
+                                        <select id="activity-level" aria-label="Physical Activity Level">
+                                            <option value="1.2">Sedentary (Minimal exercise)</option>
+                                            <option value="1.375" selected>Lightly Active (1-3 days/week)</option>
+                                            <option value="1.55">Moderately Active (3-5 days/week)</option>
+                                            <option value="1.725">Very Active (6-7 days/week)</option>
+                                            <option value="1.9">Athlete / Heavy Labor</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Target Physiological Goal (Feature 4: Macros) -->
+                                <div class="input-wrapper">
+                                    <label for="user-goal">Target Goal</label>
+                                    <div class="input-box select-box">
+                                        <select id="user-goal" aria-label="Target Health Goal">
+                                            <option value="fat_loss" selected>Fat Loss &amp; Conditioning (-20%)</option>
+                                            <option value="recomp">Body Recomposition (Maintenance)</option>
+                                            <option value="muscle_gain">Lean Muscle Hypertrophy (+10%)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Gender -->
+                                <div class="input-wrapper">
+                                    <label>Biological Sex</label>
+                                    <div class="gender-selection">
+                                        <label>
+                                            <input type="radio" name="gender" value="male" checked>
+                                            <span>Male</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="gender" value="female">
+                                            <span>Female</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn-voice" id="voice-btn" title="Voice Input (Speech Dictation)" aria-label="Dictate weight and height with voice">
+                                    <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                                </button>
+                                <button type="reset" id="form-reset-btn" class="btn-outline">Reset Form</button>
+                                <button type="submit" class="btn-primary" style="flex:1;">
+                                    <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                                    <span>Calculate AI Metrics</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Metrics Overview Strip (Expanded with 5 Precision Biometrics) -->
+                    <div class="metrics-grid span-col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                        <div class="card glass-panel metric-box">
+                            <h4>Body Fat Est.</h4>
+                            <div class="metric-value">
+                                <h2 id="bodyfat-val">--%</h2>
+                                <div class="progress-bar-sm">
+                                    <div id="bodyfat-progress" class="fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card glass-panel metric-box">
+                            <h4>Fat-Free Mass (FFMI)</h4>
+                            <div class="metric-value">
+                                <h2 id="ffmi-val">--</h2>
+                                <span class="comp-badge optimal" id="ffmi-badge">Awaiting data</span>
+                            </div>
+                        </div>
+
+                        <div class="card glass-panel metric-box">
+                            <h4>Waist/Height Ratio</h4>
+                            <div class="metric-value">
+                                <h2 id="wthr-val">--</h2>
+                                <span class="comp-badge optimal" id="wthr-badge">Awaiting data</span>
+                            </div>
+                        </div>
+
+                        <div class="card glass-panel metric-box">
+                            <h4>Metabolic Age</h4>
+                            <div class="metric-value">
+                                <h2 id="metabolic-age-val">--</h2>
+                                <span class="comp-badge optimal" id="metabolic-age-badge">Longevity</span>
+                            </div>
+                        </div>
+
+                        <div class="card glass-panel metric-box">
+                            <h4>Vitality Score</h4>
+                            <div class="metric-value fitness-v">
+                                <div class="score-circle">
+                                    <svg viewBox="0 0 36 36" class="circular-chart" aria-label="Vitality score ring">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path id="score-fill" class="circle" stroke-dasharray="0, 100"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <text x="18" y="20.35" class="percentage" id="score-text">0</text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3: Interactive Goal Simulation & Predictive Analytics -->
+                    <div class="card glass-panel span-col" id="goal-simulator-card">
+                        <div class="card-header-row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="card-icon-pill">
+                                    <i class="fa-solid fa-sliders text-gradient" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0;">Interactive Goal Simulator &amp; Predictive Timeline</h3>
+                                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-sec);">
+                                        Simulate target body weight, projected BMI, metabolic rate, and clinical transition timelines.
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="baseline-badge" id="sim-baseline-badge">
+                                <i class="fa-solid fa-crosshairs" aria-hidden="true"></i> Baseline: <strong id="sim-baseline-val">68.0 kg</strong>
+                            </span>
+                        </div>
+
+                        <div class="simulator-card">
+                            <!-- Quick Goal Presets -->
+                            <div class="sim-presets-bar">
+                                <span class="presets-label"><i class="fa-solid fa-wand-magic-sparkles text-gradient" aria-hidden="true"></i> Quick Targets:</span>
+                                <button type="button" class="sim-preset-btn" id="preset-ideal-bmi" data-preset="ideal_bmi">
+                                    <i class="fa-solid fa-bullseye" aria-hidden="true"></i> Ideal BMI (22.0)
+                                </button>
+                                <button type="button" class="sim-preset-btn" id="preset-fat-cut" data-preset="fat_cut">
+                                    <i class="fa-solid fa-arrow-trend-down" aria-hidden="true"></i> -5 kg Cut
+                                </button>
+                                <button type="button" class="sim-preset-btn" id="preset-lean-bulk" data-preset="lean_bulk">
+                                    <i class="fa-solid fa-dumbbell" aria-hidden="true"></i> +3 kg Lean Bulk
+                                </button>
+                                <button type="button" class="sim-preset-btn reset" id="preset-reset" data-preset="reset">
+                                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset Baseline
+                                </button>
+                            </div>
+
+                            <!-- Weight Slider -->
+                            <div class="simulator-slider-wrapper">
+                                <div class="slider-labels-row">
+                                    <span style="font-size: 0.88rem; color: var(--text-primary); font-weight: 700;">
+                                        <i class="fa-solid fa-weight-scale text-gradient" aria-hidden="true"></i> Target Weight:
+                                    </span>
+                                    <div class="slider-weight-stats">
+                                        <span class="slider-current-weight" id="sim-weight-display">68.0 kg</span>
+                                        <span class="slider-weight-delta" id="sim-weight-delta">0.0 kg (0.0%)</span>
+                                    </div>
+                                </div>
+                                <input type="range" class="vital-range-slider" id="weight-simulator-slider" min="40" max="120" step="0.5" value="68">
+                                <div class="slider-bounds-labels">
+                                    <span id="sim-slider-min">40 kg</span>
+                                    <span id="sim-slider-mid">Baseline: 68 kg</span>
+                                    <span id="sim-slider-max">120 kg</span>
+                                </div>
+                            </div>
+
+                            <!-- Target Pace Selector -->
+                            <div class="sim-pace-selector-row">
+                                <span class="pace-label"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Transition Pace:</span>
+                                <div class="pace-btn-group" role="group" aria-label="Transformation Pace">
+                                    <button type="button" class="pace-btn" data-pace="gentle" title="Gentle &amp; Highly Sustainable">
+                                        <span>🍃 Gentle</span>
+                                        <small class="pace-rate">~0.3 kg/wk</small>
+                                    </button>
+                                    <button type="button" class="pace-btn active" data-pace="recommended" title="Recommended Clinical Rate">
+                                        <span>⚖️ Recommended</span>
+                                        <small class="pace-rate">~0.5 kg/wk</small>
+                                    </button>
+                                    <button type="button" class="pace-btn" data-pace="aggressive" title="Aggressive (Higher Discipline)">
+                                        <span>⚡ Aggressive</span>
+                                        <small class="pace-rate">~0.8 kg/wk</small>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Real-time Simulated Metrics Grid -->
+                            <div class="sim-metrics-strip">
+                                <div class="sim-metric-pill">
+                                    <div class="lbl">Simulated BMI</div>
+                                    <div class="val text-gradient" id="sim-bmi-val">22.2</div>
+                                </div>
+                                <div class="sim-metric-pill">
+                                    <div class="lbl">Category</div>
+                                    <div class="val" id="sim-cat-val" style="font-size: 1.05rem; color: #10b981;">Normal Weight</div>
+                                </div>
+                                <div class="sim-metric-pill">
+                                    <div class="lbl">Simulated BMR</div>
+                                    <div class="val" id="sim-bmr-val">1,680 kcal</div>
+                                </div>
+                                <div class="sim-metric-pill">
+                                    <div class="lbl">Target Caloric Intake</div>
+                                    <div class="val" id="sim-cal-target-val" style="color: var(--primary);">2,100 kcal</div>
+                                </div>
+                                <div class="sim-metric-pill">
+                                    <div class="lbl">Est. Body Fat</div>
+                                    <div class="val" id="sim-bf-val">15.2%</div>
+                                </div>
+                                <div class="sim-metric-pill">
+                                    <div class="lbl">Est. Lean Mass</div>
+                                    <div class="val" id="sim-lean-val">57.7 kg</div>
+                                </div>
+                            </div>
+
+                            <!-- Transformation Timeline Box -->
+                            <div class="timeline-box">
+                                <div class="timeline-icon">
+                                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                        <h4 id="timeline-headline" style="margin: 0;">Maintenance Baseline Equilibrium</h4>
+                                        <span class="timeline-weeks-badge" id="sim-weeks-badge">Current Baseline</span>
+                                    </div>
+                                    <p id="timeline-details" style="margin: 6px 0 10px 0;">
+                                        Move the slider to simulate realistic timeframes, milestone completion dates, and nutritional calibration.
+                                    </p>
+                                    <div class="timeline-roadmap" id="timeline-roadmap">
+                                        <div class="milestone-item current">
+                                            <div class="milestone-dot"></div>
+                                            <div class="milestone-text">Start: <span id="milestone-start-wt">68.0 kg</span></div>
+                                        </div>
+                                        <div class="milestone-line"></div>
+                                        <div class="milestone-item halfway">
+                                            <div class="milestone-dot"></div>
+                                            <div class="milestone-text">Halfway: <span id="milestone-mid-date">--</span></div>
+                                        </div>
+                                        <div class="milestone-line"></div>
+                                        <div class="milestone-item target">
+                                            <div class="milestone-dot"></div>
+                                            <div class="milestone-text">Goal Target: <span id="milestone-goal-date">--</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Goal Action Bar -->
+                            <div class="sim-action-row">
+                                <button type="button" class="apply-goal-btn" id="apply-sim-goal-btn">
+                                    <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
+                                    <span>Set as Active Health Trajectory</span>
+                                </button>
+                                <span class="sim-disclaimer-txt">
+                                    <i class="fa-solid fa-shield-halved text-gradient" aria-hidden="true"></i>
+                                    Clinically bounded weekly rates protect myofibrillar mass and metabolic homeostasis.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="ai-loading" class="card glass-panel hidden span-col" style="padding:60px; text-align:center;">
+                        <i class="fa-solid fa-microchip fa-spin text-gradient" style="font-size: 50px; margin-bottom:20px;" aria-hidden="true"></i>
+                        <h3 class="mt-3">Analyzing Biomarkers...</h3>
+                        <p style="color:var(--text-sec)">Processing health telemetry via clinical predictive models.</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="results-view" class="dashboard-grid full-width hidden">
+                        <!-- Card 1: Clinical BMI Meter & Classification -->
+                        <div class="card glass-panel result-card">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <h3 style="margin: 0;"><i class="fa-solid fa-gauge" aria-hidden="true"></i> BMI Meter</h3>
+                                <span id="demographic-alert-pill" class="comp-badge optimal" style="font-size: 0.75rem;">WHO Standard</span>
+                            </div>
+                            <div class="gauge-container">
+                                <div class="circular-gauge">
+                                    <svg viewBox="0 0 100 50" class="gauge-svg" aria-label="BMI Gauge Arc">
+                                        <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" />
+                                        <path class="gauge-fill" id="gauge-fill" d="M 10 50 A 40 40 0 0 1 90 50"
+                                            stroke-dasharray="125.6" stroke-dashoffset="125.6" fill="none" />
+                                    </svg>
+                                    <div class="gauge-content">
+                                        <h2 id="bmi-result-txt">0.0</h2>
+                                        <p>BMI</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="result-status">
+                                <span class="status-badge" id="bmi-status">--</span>
+                            </div>
+                            <div class="linear-range">
+                                <div class="range-marker" id="linear-marker"></div>
+                                <div class="range-labels" id="linear-range-labels">
+                                    <span>15 (Under)</span><span>18.5 (Normal)</span><span>25 (Over)</span><span>30 (Obese)</span><span>40</span>
+                                </div>
+                            </div>
+                            <p id="demographic-explanation-txt" style="font-size: 0.82rem; color: var(--text-sec); margin-top: 14px; line-height: 1.4;"></p>
+                        </div>
+
+                        <!-- Card 2: Beyond-BMI Body Composition Engine (Feature 1) -->
+                        <div class="card glass-panel" id="body-composition-card">
+                            <h3 style="margin-bottom: 12px;"><i class="fa-solid fa-dna text-gradient" aria-hidden="true"></i> Beyond-BMI Body Composition</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-sec); margin-bottom: 16px;">
+                                Separating functional muscle mass from visceral adipose tissue to eliminate standard BMI false-positives.
+                            </p>
+                            <div class="composition-grid">
+                                <div class="comp-stat-card">
+                                    <div class="comp-stat-header">
+                                        <span class="comp-stat-title">Fat-Free Mass Index</span>
+                                        <span class="comp-badge optimal" id="ffmi-category-badge">Calculated</span>
+                                    </div>
+                                    <div class="comp-stat-val" id="ffmi-stat-val">--</div>
+                                    <p class="comp-stat-desc" id="ffmi-explanation">Normalized FFMI distinguishes athletic muscle mass from excess adipose tissue.</p>
+                                </div>
+                                <div class="comp-stat-card">
+                                    <div class="comp-stat-header">
+                                        <span class="comp-stat-title">Waist-to-Height Ratio</span>
+                                        <span class="comp-badge optimal" id="wthr-risk-badge">Healthy</span>
+                                    </div>
+                                    <div class="comp-stat-val" id="wthr-stat-val">--</div>
+                                    <p class="comp-stat-desc" id="wthr-explanation">Assesses hidden visceral adiposity. Optimal boundary is &lt; 0.50.</p>
+                                </div>
+                                <div class="comp-stat-card">
+                                    <div class="comp-stat-header">
+                                        <span class="comp-stat-title">Lean vs Fat Mass</span>
+                                    </div>
+                                    <div class="comp-stat-val" style="font-size: 1.25rem; display: flex; gap: 14px; margin: 8px 0;">
+                                        <div><span id="lean-mass-kg" style="color: #38bdf8; font-weight: 800;">--</span> <span style="font-size: 0.8rem; color: var(--text-sec);">Lean</span></div>
+                                        <div><span id="fat-mass-kg" style="color: #f87171; font-weight: 800;">--</span> <span style="font-size: 0.8rem; color: var(--text-sec);">Fat</span></div>
+                                    </div>
+                                    <p class="comp-stat-desc">Compartmental mass calculated from precision biometric telemetry.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Smart Energy & Macro Targets (Feature 4) -->
+                        <div class="card glass-panel span-col">
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+                                <h3 style="margin: 0;"><i class="fa-solid fa-chart-pie text-gradient" aria-hidden="true"></i> Smart Energy &amp; Macro Targets</h3>
+                                <div style="display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-sec);">
+                                    <span>BMR: <strong id="bmr-stat-val" style="color: var(--text-primary);">-- kcal</strong></span>
+                                    <span>TDEE: <strong id="tdee-stat-val" style="color: var(--text-primary);">-- kcal</strong></span>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-sec); margin-bottom: 16px;">
+                                Calibrated daily macronutrient targets tailored specifically for your target physiological goal.
+                            </p>
+                            <div class="macro-grid">
+                                <div class="macro-box protein">
+                                    <div class="macro-name"><i class="fa-solid fa-drumstick-bite" aria-hidden="true"></i> Protein (4 kcal/g)</div>
+                                    <div class="macro-grams" id="macro-protein-g">-- g</div>
+                                    <div class="macro-cals" id="macro-protein-kcal">-- kcal (35%)</div>
+                                    <div class="macro-bar-track"><div class="macro-bar-fill" id="protein-bar-fill" style="width: 35%;"></div></div>
+                                </div>
+                                <div class="macro-box carbs">
+                                    <div class="macro-name"><i class="fa-solid fa-wheat-awn" aria-hidden="true"></i> Carbs (4 kcal/g)</div>
+                                    <div class="macro-grams" id="macro-carbs-g">-- g</div>
+                                    <div class="macro-cals" id="macro-carbs-kcal">-- kcal (40%)</div>
+                                    <div class="macro-bar-track"><div class="macro-bar-fill" id="carbs-bar-fill" style="width: 40%;"></div></div>
+                                </div>
+                                <div class="macro-box fats">
+                                    <div class="macro-name"><i class="fa-solid fa-droplet" aria-hidden="true"></i> Fats (9 kcal/g)</div>
+                                    <div class="macro-grams" id="macro-fats-g">-- g</div>
+                                    <div class="macro-cals" id="macro-fats-kcal">-- kcal (25%)</div>
+                                    <div class="macro-bar-track"><div class="macro-bar-fill" id="fats-bar-fill" style="width: 25%;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Card 5: AI Longevity & Personalized Action Plan (Feature 6) -->
+                        <div class="card glass-panel span-col">
+                            <div class="longevity-banner">
+                                <div class="longevity-meta">
+                                    <h4><i class="fa-solid fa-dna text-gradient" aria-hidden="true"></i> Biological &amp; Metabolic Age Estimation</h4>
+                                    <p>Computed by benchmarking chronometric age against FFMI, visceral adipose ratio, and cardiovascular vitality.</p>
+                                </div>
+                                <div class="metabolic-age-badge">
+                                    <div class="num" id="longevity-metabolic-num">--</div>
+                                    <div class="sub">
+                                        <div>Metabolic Age</div>
+                                        <div id="longevity-delta-txt" style="color: #10b981;">Optimal Biomarker Index</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card glass-panel ai-advisor" style="margin-top: 20px; border: 1px solid var(--border-hover);">
+                                <h3><i class="fa-solid fa-brain text-gradient" aria-hidden="true"></i> VitalAI Personalized Health &amp; Longevity Plan</h3>
+
+                                <div class="advisor-block highlight">
+                                    <h4><i class="fa-solid fa-fire text-gradient" aria-hidden="true"></i> Calibrated Target Energy Intake</h4>
+                                    <h2 id="ai-calories">-- kcal</h2>
+                                </div>
+
+                                <div class="llm-output-container">
+                                    <div id="ai-response-text" class="streaming-text">
+                                        <p class="placeholder-text">Enter your parameters and click calculate to generate a personalized health plan.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 6: Analytics Progression History -->
+                        <div class="card glass-panel chart-panel span-col" style="margin-top: 24px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                                <h3 style="margin: 0;"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Analytics Progression History</h3>
+                                <button type="button" id="reset-history" class="btn-outline" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Reset recorded biometric history">
+                                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                                    <span>Reset History</span>
+                                </button>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="historyChart" aria-label="Biomarker progression chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global Application Footer (Digital Twin & SnackDash Architecture) -->
+                <footer class="portal-footer" id="site-footer">
+                    <div class="portal-footer-top">
+                        <div class="portal-brand-block">
+                            <div class="portal-brand-icon" aria-hidden="true">
+                                <i class="fa-solid fa-dna text-gradient"></i>
+                            </div>
+                            <div>
+                                <div class="portal-brand-name">VitalAI Platform</div>
+                                <div class="portal-brand-sub">Precision Biomarkers &amp; Clinical AI Longevity Architecture</div>
+                            </div>
+                        </div>
+
+                        <div class="portal-footer-links">
+                            <a href="/privacy.html" class="portal-link">Privacy Policy</a>
+                            <a href="/terms.html" class="portal-link">Terms &amp; Conditions</a>
+                            <button type="button" id="footer-reset-history" class="portal-btn-link" title="Reset recorded biometric history">
+                                <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                                <span>Reset History</span>
+                            </button>
+                            <button type="button" id="open-cookie-banner-btn" class="portal-btn-link" title="Cookie Preferences">
+                                <i class="fa-solid fa-cookie-bite" style="color: var(--primary);" aria-hidden="true"></i>
+                                <span>Cookie Preferences</span>
+                            </button>
+                            <span class="portal-privacy-badge">
+                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> 100% On-Device Privacy
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="portal-footer-bottom">
+                        <div class="portal-footer-copy">&copy; 2026 VitalAI Platform Systems &bull; Precision Health Architecture</div>
+                        <div class="portal-footer-meta">
+                            <span>Strictly Advisory &bull; Clinical Wellness Guidance</span>
+                            <span class="portal-version-tag">v2.4.0 Production</span>
+                        </div>
+                    </div>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <!-- AI Chatbot Floating Action Button -->
+    <button id="chatbot-trigger" class="chatbot-fab" aria-label="Open AI Health Assistant">
+        <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+        <span class="pulse-ring"></span>
+    </button>
+
+    <!-- Chatbot Window -->
+    <div id="chatbot-window" class="chatbot-glass glass-panel hidden" role="dialog" aria-label="AI Health Assistant">
+        <div class="chat-header">
+            <div class="chat-title">
+                <i class="fa-solid fa-robot text-gradient" aria-hidden="true"></i>
+                <div>
+                    <h4>VitalAI Assistant</h4>
+                    <span class="status-online"><i class="fa-solid fa-bolt" aria-hidden="true"></i> VitalAI Online</span>
+                </div>
+            </div>
+            <button id="close-chat" class="close-btn" aria-label="Close chat window">&times;</button>
+        </div>
+        <div id="chat-messages" class="chat-body" tabindex="0">
+            <div class="message ai">
+                <p>Hello! I am your VitalAI Health Companion. Ask me anything about diet plans, workouts, or your calculated biomarker results!</p>
+            </div>
+        </div>
+        <div id="chat-attachment-preview" class="chat-attachment-preview hidden">
+            <div class="attachment-info">
+                <i class="fa-solid fa-file-medical text-gradient" id="chat-attachment-icon"></i>
+                <img id="chat-attachment-thumb" class="attachment-thumb hidden" alt="Thumbnail preview">
+                <div>
+                    <div id="chat-attachment-name" class="attachment-name">report.pdf</div>
+                    <div id="chat-attachment-size" class="attachment-size">0 KB</div>
+                </div>
+            </div>
+            <button type="button" id="chat-remove-attachment" class="attachment-remove-btn" aria-label="Remove attached file">&times;</button>
+        </div>
+        <div class="chat-footer">
+            <input type="file" id="chat-file-input" accept="image/*,.pdf,.txt,.csv,.json" style="display: none;">
+            <button type="button" id="chat-attach-btn" class="chat-attach-btn" aria-label="Upload health document or photo" title="Upload lab test, health report, photo, or metric file">
+                <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+            </button>
+            <input type="text" id="chat-input" placeholder="Ask about diet, workout, or upload health reports...">
+            <button id="send-chat" aria-label="Send message"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <aside id="cookie-consent-banner" class="cookie-banner hidden" role="region" aria-label="Cookie and telemetry consent banner">
+        <div class="cookie-banner-content">
+            <h4><i class="fa-solid fa-cookie-bite text-gradient" aria-hidden="true"></i> Privacy &amp; Data Transparency</h4>
+            <p>
+                We use browser <code>localStorage</code> strictly for your biometric history and preference persistence. No commercial tracking cookies or third-party ad brokers are used. Learn more in our <a href="/privacy.html">Privacy Policy</a>.
+            </p>
+        </div>
+        <div class="cookie-banner-actions">
+            <button type="button" id="cookie-decline-btn" class="cookie-btn-decline">Essential Only</button>
+            <button type="button" id="cookie-accept-btn" class="cookie-btn-accept">Accept All</button>
+        </div>
+    </aside>
+
+    <!-- Feature 2: AI Visual Body Scan Modal -->
+    <div id="visual-scan-modal" class="scan-modal-overlay hidden" role="dialog" aria-label="AI Visual Body Scan">
+        <div class="scan-modal-box">
+            <div class="scan-modal-header">
+                <h3><i class="fa-solid fa-camera-retro text-gradient" aria-hidden="true"></i> AI Visual Body Scan</h3>
+                <button type="button" class="close-btn" id="close-scan-modal-btn" aria-label="Close modal">&times;</button>
+            </div>
+            
+            <p style="font-size: 0.88rem; color: var(--text-sec); margin-top: -10px; margin-bottom: 18px;">
+                Upload or capture a photo to estimate body fat percentage, silhouette physique, and fat distribution zones using client-side computer vision.
+            </p>
+
+            <div class="scan-dropzone" id="scan-dropzone">
+                <input type="file" id="scan-file-input" accept="image/*" style="display: none;">
+                <i class="fa-solid fa-cloud-arrow-up text-gradient" style="font-size: 38px; margin-bottom: 10px;" aria-hidden="true"></i>
+                <h4 style="margin: 0 0 6px 0; color: var(--text-primary);">Click or Drag Image Here to Scan</h4>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--text-sec);">Supports PNG, JPG, or direct camera snapshot (processed on-device)</p>
+            </div>
+
+            <div class="scan-canvas-wrapper" id="scan-canvas-container" style="display: none;">
+                <canvas id="body-scan-canvas"></canvas>
+                <div class="scan-laser-line" id="scan-laser-line"></div>
+            </div>
+
+            <div class="scan-metrics-grid" id="scan-results-grid" style="display: none;">
+                <div class="scan-metric-card">
+                    <div class="title">Est. Body Fat Range</div>
+                    <div class="val" id="scan-bf-range" style="color: var(--primary);">--%</div>
+                    <div class="desc">Computer vision silhouette density</div>
+                </div>
+                <div class="scan-metric-card">
+                    <div class="title">Physique Classification</div>
+                    <div class="val" id="scan-somatotype" style="color: #38bdf8;">--</div>
+                    <div class="desc">Shoulder-to-waist ratio symmetry</div>
+                </div>
+                <div class="scan-metric-card">
+                    <div class="title">Fat Distribution Zone</div>
+                    <div class="val" id="scan-distribution-zone" style="color: #10b981;">--</div>
+                    <div class="desc">Android vs Gynoid predisposition</div>
+                </div>
+                <div class="scan-metric-card">
+                    <div class="title">Posture Alignment Score</div>
+                    <div class="val" id="scan-posture-score" style="color: #fbbf24;">--</div>
+                    <div class="desc">Vertical kinetic chain symmetry</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 14px;">
+                <button type="button" class="btn-outline" id="scan-cancel-btn">Cancel</button>
+                <button type="button" class="btn-primary" id="apply-scan-data-btn" style="display: none;">
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    <span>Apply Telemetry to Calculator</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Module Script -->
+    <script type="module" src="/script.js"></script>
+</body>
+
+</html>
